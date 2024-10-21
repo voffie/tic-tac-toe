@@ -29,10 +29,17 @@ public class Controller {
         int col = position[1];
         State state = model.getState();
         if (state != GAME_OVER) {
-            String token = model.getCurrentPlayer();
-            model.setToken(row, col);
-            cell.setText(token);
+            updateCell(cell, row, col);
+        } else {
+            initializeBoard();
+            model.setState(PLAYING);
         }
+    }
+
+    private void updateCell(Label cell, int row, int col) {
+        String token = model.getCurrentPlayer();
+        model.setToken(row, col);
+        cell.setText(token);
     }
 
     private void initializeBoard() {
