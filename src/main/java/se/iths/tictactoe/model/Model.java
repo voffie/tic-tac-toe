@@ -65,6 +65,14 @@ public class Model {
         return state;
     }
 
+    public void setState(State state) {
+        if (state == PLAYING) {
+            currentPlayer = "X";
+            setStatus("X's turn");
+        }
+        this.state = state;
+    }
+
     public void setToken(int row, int col) {
         if (!board[row][col].isEmpty()) {
             currentPlayer = Objects.equals(currentPlayer, "X") ? "O" : "X";
