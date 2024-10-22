@@ -6,7 +6,7 @@ import java.util.Objects;
 import static se.iths.tictactoe.model.State.*;
 
 public class Model {
-    private final String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
+    private String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
     private State state = PLAYING;
     private String currentPlayer = "X";
     private int p1Score = 0;
@@ -69,6 +69,7 @@ public class Model {
         if (state == PLAYING) {
             currentPlayer = "X";
             setStatus("X's turn");
+            board = new String[][]{{"", "", ""}, {"", "", ""}, {"", "", ""}};
         }
         this.state = state;
     }
