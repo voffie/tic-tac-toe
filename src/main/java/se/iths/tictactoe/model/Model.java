@@ -36,7 +36,7 @@ public class Model {
     }
 
     public void setP1Points() {
-        p1Score = p1Score + 1;
+        p1Score++;
         this.p1Points.set("Player 1 (X): " + p1Score);
     }
 
@@ -49,7 +49,7 @@ public class Model {
     }
 
     public void setP2Points() {
-        p2Score = p2Score + 1;
+        p2Score++;
         this.p2Points.set("Player 2 (O): " + p2Score);
     }
 
