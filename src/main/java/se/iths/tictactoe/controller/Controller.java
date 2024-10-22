@@ -43,7 +43,6 @@ public class Controller {
     }
 
     private void initializeBoard() {
-        String[][] board = model.getBoard();
         pane.getChildren().clear();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -52,7 +51,6 @@ public class Controller {
                 cell.setStyle("-fx-border-color: black; -fx-alignment: center; -fx-font-size: 36");
                 cell.setOnMouseClicked(this::handleClick);
                 cell.setUserData(new int[]{i, j});
-                board[j][i] = "";
                 pane.add(cell, j, i);
             }
         }
