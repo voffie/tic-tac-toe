@@ -23,20 +23,32 @@ public class Controller {
 
     public void initialize() throws URISyntaxException, IOException {
         initializeBoard();
+        setupGameConfig();
+    }
+
+    public void setupGameConfig() throws URISyntaxException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(Objects.requireNonNull(TicTacToe.class.getResource("config.json")).toURI()));
+
+        validateConfig(root);
+
+        boolean isOnline = root.get("online").asBoolean();
+        model.setIsLocal(!isOnline);
+
+        if (isOnline) {
+            setupOnlineConnection(root);
+        } else {
+            System.out.println("Playing locally!");
+        }
+    }
+
+    private void validateConfig(JsonNode root) {
         if (!root.has("online")) {
             throw new RuntimeException("Missing config option: online (true/false)");
         }
+    }
 
-        boolean isOnline = root.get("online").asBoolean();
-
-        if (!isOnline) {
-            System.out.println("Playing locally!");
-            return;
-        }
-
-        model.setIsLocal(false);
+    private void setupOnlineConnection(JsonNode root) {
         int port = root.has("port") ? root.get("port").asInt() : 3000;
 
         if (root.has("host")) {
@@ -65,13 +77,17 @@ public class Controller {
         int[] position = (int[]) cell.getUserData();
         int row = position[0];
         int col = position[1];
-        State state = model.getState();
-        if (state != GAME_OVER) {
+
+        if (model.getState() != GAME_OVER) {
             updateCell(cell, row, col);
         } else {
-            initializeBoard();
-            model.setState(PLAYING);
+            restartGame();
         }
+    }
+
+    private void restartGame() {
+        initializeBoard();
+        model.setState(PLAYING);
     }
 
     private void updateCell(Label cell, int row, int col) {
@@ -86,30 +102,32 @@ public class Controller {
         String token = model.getCurrentPlayer();
         model.setToken(row, col);
         cell.setText(token);
-        State currentState = model.getState();
-        model.setCurrentPlayer("O");
-        if (currentState == PLAYING) {
-            int[] cpuPos = model.getCpuToken();
-            int cpuRow = cpuPos[0];
-            int cpuCol = cpuPos[1];
-            model.setToken(cpuRow, cpuCol);
-            Label label = getLabel(cpuRow, cpuCol);
-            if (label != null)
-                label.setText("O");
-            model.setCurrentPlayer("X");
+
+        if (model.getState() == PLAYING) {
+            performCpuMove();
         }
     }
 
-    private void updateOnlineCell(Label cell, int row, int col) {
+    private void performCpuMove() {
+        model.setCurrentPlayer("O");
+        int[] cpuPos = model.getCpuToken();
+        model.setToken(cpuPos[0], cpuPos[1]);
+        Label cpuCell = getLabel(cpuPos[0], cpuPos[1]);
 
+        if (cpuCell != null) {
+            cpuCell.setText("O");
+        }
+        model.setCurrentPlayer(("X"));
+    }
+
+    private void updateOnlineCell(Label cell, int row, int col) {
+        // Online update logic
     }
 
     private Label getLabel(int row, int col) {
         for (Node label : pane.getChildren()) {
             int[] userData = (int[]) label.getUserData();
-            int userDataRow = userData[0];
-            int userDataCol = userData[1];
-            if (userDataRow == row && userDataCol == col) {
+            if (userData[0] == row && userData[1] == col) {
                 return (Label) label;
             }
         }
@@ -122,13 +140,17 @@ public class Controller {
         pane.getChildren().clear();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                Label cell = new Label();
-                cell.setMinSize(100, 100);
-                cell.setStyle("-fx-border-color: black; -fx-alignment: center; -fx-font-size: 36");
-                cell.setOnMouseClicked(this::handleClick);
-                cell.setUserData(new int[]{i, j});
-                pane.add(cell, j, i);
+                createCell(i, j);
             }
         }
+    }
+
+    private void createCell(int row, int col) {
+        Label cell = new Label();
+        cell.setMinSize(100, 100);
+        cell.setStyle("-fx-border-color: black; -fx-alignment: center; -fx-font-size: 36");
+        cell.setOnMouseClicked(this::handleClick);
+        cell.setUserData(new int[]{row, col});
+        pane.add(cell, col, row);
     }
 }

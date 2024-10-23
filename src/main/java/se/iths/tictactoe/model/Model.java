@@ -28,9 +28,7 @@ public class Model {
     public void setIsLocal(boolean isLocal) {
         this.isLocal = isLocal;
 
-        if (!isLocal) {
-            p2Points.set("Player 2 (O): 0");
-        }
+        p2Points.set(isLocal ? "CPU (O): 0" : "Player 2 (O): 0");
     }
 
     public String getStatus() {
@@ -53,7 +51,7 @@ public class Model {
         return p1Points;
     }
 
-    public void setP1Points() {
+    public void incrementP1Points() {
         p1Score++;
         this.p1Points.set("Player 1 (X): " + p1Score);
     }
@@ -66,7 +64,7 @@ public class Model {
         return p2Points;
     }
 
-    public void setP2Points() {
+    public void incrementP2Points() {
         p2Score++;
         this.p2Points.set("Player 2 (O): " + p2Score);
     }
@@ -93,9 +91,9 @@ public class Model {
 
     public void setState(State state) {
         if (state == PLAYING) {
+            resetBoard();
             currentPlayer = "X";
             setStatus("X's turn");
-            board = new String[][]{{"", "", ""}, {"", "", ""}, {"", "", ""}};
         }
         this.state = state;
     }
@@ -105,29 +103,29 @@ public class Model {
     }
 
     public int[] getCpuToken() {
-        int row = 0;
-        int col = 0;
-        while (!isCellFree(row, col)) {
+        int row, col;
+        do {
             row = random.nextInt(3);
             col = random.nextInt(3);
-        }
+        } while (!isCellFree(row, col));
 
         return new int[]{row, col};
     }
 
     public void setToken(int row, int col) {
-        if (!isCellFree(row, col)) {
-            return;
+        if (isCellFree(row, col)) {
+            board[row][col] = currentPlayer;
+            checkGameStatus();
         }
+    }
 
-        board[row][col] = currentPlayer;
-
+    private void checkGameStatus() {
         if (isWinner()) {
             setStatus(currentPlayer + " won! The game is over!");
             if (Objects.equals(currentPlayer, "X")) {
-                setP1Points();
+                incrementP1Points();
             } else {
-                setP2Points();
+                incrementP2Points();
             }
             state = GAME_OVER;
         } else if (isFull()) {
@@ -137,9 +135,9 @@ public class Model {
     }
 
     public boolean isFull() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (board[i][j].isEmpty()) {
+        for (String[] row : board) {
+            for (String cell : row) {
+                if (cell.isEmpty()) {
                     return false;
                 }
             }
@@ -148,15 +146,25 @@ public class Model {
     }
 
     public boolean isWinner() {
-        String player = currentPlayer;
         for (int i = 0; i < 3; i++) {
-            if ((board[i][0].equals(player) && board[i][1].equals(player) && board[i][2].equals(player)) ||
-                    (board[0][i].equals(player) && board[1][i].equals(player) && board[2][i].equals(player))) {
+            if (checkRow(i) || checkColumn(i)) {
                 return true;
             }
-        }
 
-        return (board[0][0].equals(player) && board[1][1].equals(player) && board[2][2].equals(player)) ||
-                (board[0][2].equals(player) && board[1][1].equals(player) && board[2][0].equals(player));
+        }
+        return checkDiagonals();
+    }
+
+    private boolean checkRow(int row) {
+        return board[row][0].equals(currentPlayer) && board[row][1].equals(currentPlayer) && board[row][2].equals(currentPlayer);
+    }
+
+    private boolean checkColumn(int col) {
+        return board[0][col].equals(currentPlayer) && board[1][col].equals(currentPlayer) && board[2][col].equals(currentPlayer);
+    }
+
+    private boolean checkDiagonals() {
+        return (board[0][0].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][2].equals(currentPlayer)) ||
+                (board[0][2].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][0].equals(currentPlayer));
     }
 }
