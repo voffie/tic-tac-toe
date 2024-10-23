@@ -3,7 +3,6 @@ package se.iths.tictactoe.model;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 

@@ -1,6 +1,5 @@
 package se.iths.tictactoe.model;
 
-import javafx.beans.property.SimpleStringProperty;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
