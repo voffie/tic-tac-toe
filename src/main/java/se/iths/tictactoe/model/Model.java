@@ -80,10 +80,6 @@ public class Model {
         return currentPlayer;
     }
 
-    public void setCurrentPlayer(String newPlayer) {
-        currentPlayer = newPlayer;
-    }
-
     public State getState() {
         return state;
     }
@@ -130,6 +126,8 @@ public class Model {
         } else if (isFull()) {
             setStatus("Draw! The game is over");
             state = GAME_OVER;
+        } else {
+            currentPlayer = (Objects.equals(currentPlayer, "X")) ? "O" : "X";
         }
     }
 

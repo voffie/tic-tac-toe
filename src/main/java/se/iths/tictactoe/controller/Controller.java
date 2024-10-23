@@ -108,7 +108,6 @@ public class Controller {
     }
 
     private void performCpuMove() {
-        model.setCurrentPlayer("O");
         int[] cpuPos = model.getCpuToken();
         model.setToken(cpuPos[0], cpuPos[1]);
         Label cpuCell = getLabel(cpuPos[0], cpuPos[1]);
@@ -116,7 +115,6 @@ public class Controller {
         if (cpuCell != null) {
             cpuCell.setText("O");
         }
-        model.setCurrentPlayer(("X"));
     }
 
     private void updateOnlineCell(Label cell, int row, int col) {
