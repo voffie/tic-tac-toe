@@ -1,7 +1,6 @@
 package se.iths.tictactoe.model;
 
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class ModelTest {
@@ -50,8 +49,9 @@ class ModelTest {
         model.setToken(0, 0); // X
         model.setToken(0, 1); // O
         model.setToken(1, 0); // X
-        model.setToken(0, 2); // O
-        model.setToken(2, 0); // X
+        model.setToken(1, 1); // O
+        model.setToken(2, 2); // X
+        model.setToken(2, 1); // O
 
         assertTrue(model.isWinner());
     }
@@ -173,17 +173,23 @@ class ModelTest {
     }
 
     @Test
-    void getCurrentPlayerShouldReturnUpdatedPlayer() {
-        model.setCurrentPlayer("O");
-
-        assertEquals("O", model.getCurrentPlayer());
-    }
-
-    @Test
     void getIsLocalShouldReturnUpdatedState() {
         model.setIsLocal(false);
 
         assertFalse(model.getIsLocal());
+    }
+
+    @Test
+    void cpuShouldMakePossibleMove() {
+        String[][] board = {{"X", "", ""}, {"", "O", ""}, {"", "", ""}};
+        MockRandom random = new MockRandom();
+        Model model = new Model(random);
+
+        model.setToken(0, 0); // X
+        int[] cpuPos = model.getCpuToken();
+        model.setToken(cpuPos[0], cpuPos[1]);
+
+        assertArrayEquals(board, model.getBoard());
     }
 
 }

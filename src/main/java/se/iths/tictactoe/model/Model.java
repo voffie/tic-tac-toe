@@ -2,15 +2,13 @@ package se.iths.tictactoe.model;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
 import java.util.Objects;
 import java.util.Random;
-
 import static se.iths.tictactoe.model.State.*;
 
 public class Model {
     private String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
-    private final Random random = new Random();
+    private final Random random;
     private State state = PLAYING;
     private String currentPlayer = "X";
     private int p1Score = 0;
@@ -19,6 +17,14 @@ public class Model {
     private final StringProperty status = new SimpleStringProperty(currentPlayer + "'s turn");
     private final StringProperty p1Points = new SimpleStringProperty("Player 1 (X): 0");
     private final StringProperty p2Points = new SimpleStringProperty("CPU (O): 0");
+
+    public Model() {
+        this.random = new Random();
+    }
+
+    public Model(Random rand) {
+        this.random = rand;
+    }
 
     public boolean getIsLocal() {
         return isLocal;
