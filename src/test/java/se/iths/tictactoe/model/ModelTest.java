@@ -137,14 +137,14 @@ class ModelTest {
 
     @Test
     void p1PointsShouldBeUpdated() {
-        model.setP1Points();
+        model.incrementP1Points();
 
         assertEquals("Player 1 (X): 1", model.getP1Points());
     }
 
     @Test
     void p2PointsShouldBeUpdated() {
-        model.setP2Points();
+        model.incrementP2Points();
 
         assertEquals("Player 2 (O): 1", model.getP2Points());
     }
