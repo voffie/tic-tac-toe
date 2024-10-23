@@ -8,7 +8,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import se.iths.tictactoe.TicTacToe;
 import se.iths.tictactoe.model.Model;
-import se.iths.tictactoe.model.State;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +64,7 @@ public class Controller {
 
     private void host(int port) {
         System.out.println("Opening server on port: " + port);
-        throw new RuntimeException("Not implemented yet");
+        //throw new RuntimeException("Not implemented yet");
     }
 
     public Model getModel() {
