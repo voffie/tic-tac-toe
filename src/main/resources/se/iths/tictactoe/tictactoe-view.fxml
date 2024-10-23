@@ -5,15 +5,15 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
-
 <?import javafx.scene.layout.Region?>
+
 <BorderPane xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="se.iths.tictactoe.controller.Controller">
     <top>
         <HBox>
-            <Label fx:id="player1Points" text="${controller.model.p1Points}"/>
+            <Label text="${controller.model.p1Points}"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="player2Points" text="${controller.model.p2Points}"/>
+            <Label text="${controller.model.p2Points}"/>
             <HBox.margin>
                 <Insets left="20" right="20"/>
             </HBox.margin>
@@ -24,7 +24,7 @@
         </GridPane>
     </center>
     <bottom>
-        <Label fx:id="status" text="${controller.model.status}"/>
+        <Label text="${controller.model.status}"/>
     </bottom>
     <padding>
         <Insets topRightBottomLeft="10"/>

@@ -2,18 +2,36 @@ package se.iths.tictactoe.model;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
+
 import static se.iths.tictactoe.model.State.*;
 
 public class Model {
     private String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
+    private final Random random = new Random();
     private State state = PLAYING;
     private String currentPlayer = "X";
     private int p1Score = 0;
     private int p2Score = 0;
+    private boolean isLocal = true;
     private final StringProperty status = new SimpleStringProperty(currentPlayer + "'s turn");
     private final StringProperty p1Points = new SimpleStringProperty("Player 1 (X): 0");
-    private final StringProperty p2Points = new SimpleStringProperty("Player 2 (O): 0");
+    private final StringProperty p2Points = new SimpleStringProperty("CPU (O): 0");
+
+    public boolean getIsLocal() {
+        return isLocal;
+    }
+
+    public void setIsLocal(boolean isLocal) {
+        this.isLocal = isLocal;
+
+        if (!isLocal) {
+            p2Points.set("Player 2 (O): 0");
+        }
+    }
 
     public String getStatus() {
         return status.get();
@@ -57,8 +75,16 @@ public class Model {
         return board;
     }
 
+    public void resetBoard() {
+        board = new String[][]{{"", "", ""}, {"", "", ""}, {"", "", ""}};
+    }
+
     public String getCurrentPlayer() {
         return currentPlayer;
+    }
+
+    public void setCurrentPlayer(String newPlayer) {
+        currentPlayer = newPlayer;
     }
 
     public State getState() {
@@ -74,9 +100,23 @@ public class Model {
         this.state = state;
     }
 
+    private boolean isCellFree(int row, int col) {
+        return board[row][col].isEmpty();
+    }
+
+    public int[] getCpuToken() {
+        int row = 0;
+        int col = 0;
+        while (!isCellFree(row, col)) {
+            row = random.nextInt(3);
+            col = random.nextInt(3);
+        }
+
+        return new int[]{row, col};
+    }
+
     public void setToken(int row, int col) {
-        if (!board[row][col].isEmpty()) {
-            currentPlayer = Objects.equals(currentPlayer, "X") ? "O" : "X";
+        if (!isCellFree(row, col)) {
             return;
         }
 
@@ -93,9 +133,6 @@ public class Model {
         } else if (isFull()) {
             setStatus("Draw! The game is over");
             state = GAME_OVER;
-        } else {
-            currentPlayer = Objects.equals(currentPlayer, "X") ? "O" : "X";
-            setStatus(currentPlayer + "'s turn");
         }
     }
 
