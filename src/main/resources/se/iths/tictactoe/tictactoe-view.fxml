@@ -6,25 +6,37 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Button?>
 
 <BorderPane xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="se.iths.tictactoe.controller.Controller">
     <top>
-        <HBox>
-            <Label text="${controller.model.p1Points}"/>
+        <HBox fx:id="top" visible="false" managed="false">
+            <Label text="${controller.model.playerScoreLabel}"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="${controller.model.p2Points}"/>
+            <Label text="${controller.model.opponentScoreLabel}"/>
             <HBox.margin>
                 <Insets left="20" right="20"/>
             </HBox.margin>
         </HBox>
     </top>
     <center>
-        <GridPane fx:id="pane" alignment="CENTER">
-        </GridPane>
+        <StackPane>
+            <HBox fx:id="container" alignment="CENTER" spacing="20">
+                <Button fx:id="onlineBtn" onMouseClicked="#onlineClicked">
+                    Play online
+                </Button>
+                <Button fx:id="localBtn" onMouseClicked="#localClicked">
+                    Play local
+                </Button>
+            </HBox>
+            <GridPane fx:id="pane" alignment="CENTER" managed="false" visible="false">
+            </GridPane>
+        </StackPane>
     </center>
     <bottom>
-        <Label text="${controller.model.status}"/>
+        <Label fx:id="bottom" text="${controller.model.status}" visible="false" managed="false"/>
     </bottom>
     <padding>
         <Insets topRightBottomLeft="10"/>

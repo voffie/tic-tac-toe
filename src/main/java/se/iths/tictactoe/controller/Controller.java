@@ -1,139 +1,46 @@
 package se.iths.tictactoe.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import se.iths.tictactoe.TicTacToe;
+import javafx.scene.layout.HBox;
 import se.iths.tictactoe.model.Model;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import se.iths.tictactoe.network.ComputerClient;
+import se.iths.tictactoe.network.State;
 import java.util.Objects;
-
-import static se.iths.tictactoe.model.State.*;
 
 public class Controller {
     private final Model model = new Model();
     public GridPane pane;
+    public HBox container;
+    public Button onlineBtn;
+    public Button localBtn;
+    public HBox top;
+    public Label bottom;
 
-    public void initialize() throws URISyntaxException, IOException {
+    public void initialize() {
         initializeBoard();
-        setupGameConfig();
-    }
-
-    public void setupGameConfig() throws URISyntaxException, IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(new File(Objects.requireNonNull(TicTacToe.class.getResource("config.json")).toURI()));
-
-        validateConfig(root);
-
-        boolean isOnline = root.get("online").asBoolean();
-        model.setIsLocal(!isOnline);
-
-        if (isOnline) {
-            setupOnlineConnection(root);
-        } else {
-            System.out.println("Playing locally!");
-        }
-    }
-
-    private void validateConfig(JsonNode root) {
-        if (!root.has("online")) {
-            throw new RuntimeException("Missing config option: online (true/false)");
-        }
-    }
-
-    private void setupOnlineConnection(JsonNode root) {
-        int port = root.has("port") ? root.get("port").asInt() : 3000;
-
-        if (root.has("host")) {
-            connect(root.get("host").asText(), port);
-        } else {
-            host(port);
-        }
-    }
-
-    private void connect(String host, int port) {
-        System.out.println("Connecting to " + host + ":" + port);
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    private void host(int port) {
-        System.out.println("Opening server on port: " + port);
-        //throw new RuntimeException("Not implemented yet");
-    }
-
-    public Model getModel() {
-        return model;
-    }
-
-    private void handleClick(MouseEvent mouseEvent) {
-        Label cell = (Label) mouseEvent.getSource();
-        int[] position = (int[]) cell.getUserData();
-        int row = position[0];
-        int col = position[1];
-
-        if (model.getState() != GAME_OVER) {
-            updateCell(cell, row, col);
-        } else {
-            restartGame();
-        }
-    }
-
-    private void restartGame() {
-        initializeBoard();
-        model.setState(PLAYING);
-    }
-
-    private void updateCell(Label cell, int row, int col) {
-        if (model.getIsLocal()) {
-            updateLocalCell(cell, row, col);
-        } else {
-            updateOnlineCell(cell, row, col);
-        }
-    }
-
-    private void updateLocalCell(Label cell, int row, int col) {
-        String token = model.getCurrentPlayer();
-        model.setToken(row, col);
-        cell.setText(token);
-
-        if (model.getState() == PLAYING) {
-            performCpuMove();
-        }
-    }
-
-    private void performCpuMove() {
-        int[] cpuPos = model.getCpuToken();
-        model.setToken(cpuPos[0], cpuPos[1]);
-        Label cpuCell = getLabel(cpuPos[0], cpuPos[1]);
-
-        if (cpuCell != null) {
-            cpuCell.setText("O");
-        }
-    }
-
-    private void updateOnlineCell(Label cell, int row, int col) {
-        // Online update logic
-    }
-
-    private Label getLabel(int row, int col) {
-        for (Node label : pane.getChildren()) {
-            int[] userData = (int[]) label.getUserData();
-            if (userData[0] == row && userData[1] == col) {
-                return (Label) label;
+        model.getBoard().addListener((ListChangeListener<String[]>) _ -> {
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    String[] currentRow = model.getBoard().get(row);
+                    String text = currentRow[col];
+                    Label label = getLabel(row, col);
+                    Platform.runLater(() -> {
+                        if (label != null) {
+                            label.setText(Objects.equals(text, "-") ? "" : text);
+                        }
+                    });
+                }
             }
-        }
-
-        return null;
+        });
     }
 
     private void initializeBoard() {
-        model.resetBoard();
         pane.getChildren().clear();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -149,5 +56,60 @@ public class Controller {
         cell.setOnMouseClicked(this::handleClick);
         cell.setUserData(new int[]{row, col});
         pane.add(cell, col, row);
+    }
+
+    public Model getModel() {
+        return model;
+    }
+
+
+
+    private void handleClick(MouseEvent mouseEvent) {
+        Label cell = (Label) mouseEvent.getSource();
+        int[] position = (int[]) cell.getUserData();
+        int row = position[0];
+        int col = position[1];
+        String currentPlayer = model.getCurrentPlayer();
+        String playerToken = model.getToken();
+        if (model.getState() == State.PLAYING && Objects.equals(playerToken, currentPlayer)) {
+            model.sendMove(row, col);
+        }
+    }
+
+    private Label getLabel(int row, int col) {
+        for (Node label : pane.getChildren()) {
+            int[] userData = (int[]) label.getUserData();
+            if (userData[0] == row && userData[1] == col) {
+                return (Label) label;
+            }
+        }
+
+        return null;
+    }
+
+    public void localClicked() {
+        updateMenuUI();
+        model.connect();
+        ComputerClient cpu = new ComputerClient();
+        cpu.connect();
+    }
+
+    public void onlineClicked() {
+        updateMenuUI();
+        model.connect();
+    }
+
+    public void updateMenuUI() {
+        container.setVisible(false);
+        container.setManaged(false);
+
+        pane.setVisible(true);
+        pane.setManaged(true);
+
+        top.setManaged(true);
+        top.setVisible(true);
+
+        bottom.setManaged(true);
+        bottom.setVisible(true);
     }
 }

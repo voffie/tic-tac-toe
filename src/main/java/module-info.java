@@ -1,7 +1,6 @@
 module se.iths.tictactoe {
     requires javafx.controls;
     requires javafx.fxml;
-    requires com.fasterxml.jackson.databind;
 
     opens se.iths.tictactoe to javafx.fxml;
     exports se.iths.tictactoe;
@@ -9,4 +8,6 @@ module se.iths.tictactoe {
     opens se.iths.tictactoe.model to javafx.fxml;
     exports se.iths.tictactoe.controller;
     opens se.iths.tictactoe.controller to javafx.fxml;
+    exports se.iths.tictactoe.network;
+    opens se.iths.tictactoe.network to javafx.fxml;
 }
