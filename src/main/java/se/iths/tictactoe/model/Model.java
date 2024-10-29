@@ -47,27 +47,17 @@ public class Model {
         board.get(row)[col] = token;
     }
 
-    public void receiveMessage(String message) {
-        if (Objects.equals(message, "Invalid move")) {
-            return;
-        }
+    private void handleTokenMessage(String message) {
+        token = message.split(":")[1];
+        String opponentToken = Objects.equals(token, "X") ? "O" : "X";
+        Platform.runLater(() -> {
+            this.playerScoreLabel.set("You (" + token + "): 0");
+            this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
+        });
+    }
 
-        if (message.contains("Token:")) {
-            token = message.split(":")[1];
-            String opponentToken = Objects.equals(token, "X") ? "O" : "X";
-            Platform.runLater(() -> {
-                this.playerScoreLabel.set("You (" + token + "): 0");
-                this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
-            });
-            return;
-        }
-
-        String[] boardStateSplit = message.split(",CurrentPlayer:");
-        String[] playerStateSplit = boardStateSplit[1].split(",State:");
-        currentPlayer = playerStateSplit[0];
-        state = State.valueOf(playerStateSplit[1]);
-
-        String[][] deserializedMessage = deserializeMessage(boardStateSplit[0]);
+    private void updateBoard(String serializedBoard) {
+        String[][] deserializedMessage = deserializeMessage(serializedBoard);
         for (int row = 0; row < 3; row++) {
             String[] newRow = new String[3];
             for (int col = 0; col < 3; col++) {
@@ -75,7 +65,9 @@ public class Model {
             }
             board.set(row, newRow);
         }
+    }
 
+    private void handleScore() {
         String statusMessage;
         if (state == GAME_OVER) {
             String winner = isPlayerTurn() ? "You" : "Opponent";
@@ -94,6 +86,25 @@ public class Model {
         }
 
         Platform.runLater(() -> setStatus(statusMessage));
+    }
+
+    public void receiveMessage(String message) {
+        if (Objects.equals(message, "Invalid move")) {
+            return;
+        }
+
+        if (message.contains("Token:")) {
+            handleTokenMessage(message);
+            return;
+        }
+
+        String[] boardStateSplit = message.split(",CurrentPlayer:");
+        String[] playerStateSplit = boardStateSplit[1].split(",State:");
+        currentPlayer = playerStateSplit[0];
+        state = State.valueOf(playerStateSplit[1]);
+
+        updateBoard(boardStateSplit[0]);
+        handleScore();
     }
 
     public ObservableList<String[]> getBoard() {
