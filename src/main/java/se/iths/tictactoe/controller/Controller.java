@@ -86,18 +86,18 @@ public class Controller {
     }
 
     public void localClicked() {
-        updateMenuUI();
+        renderGameUI();
         model.connect();
         ComputerClient cpu = new ComputerClient();
         cpu.connect();
     }
 
     public void onlineClicked() {
-        updateMenuUI();
+        renderGameUI();
         model.connect();
     }
 
-    public void updateMenuUI() {
+    public void renderGameUI() {
         container.setVisible(false);
         container.setManaged(false);
 
