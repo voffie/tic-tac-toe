@@ -1,6 +1,7 @@
 package se.iths.tictactoe.network;
 
 import java.util.Objects;
+
 import static se.iths.tictactoe.network.State.*;
 
 public class GameState {
@@ -53,7 +54,6 @@ public class GameState {
 
     public void checkGameStatus() {
         if (isWinner()) {
-            System.out.println(getCurrentPlayer() + " won! The game is over!");
             if (Objects.equals(getCurrentPlayer(), "X")) {
                 incrementP1Points();
             } else {
@@ -61,7 +61,6 @@ public class GameState {
             }
             state = GAME_OVER;
         } else if (isFull()) {
-            System.out.println("Draw! The game is over");
             state = GAME_OVER_DRAW;
         } else {
             setCurrentPlayer((Objects.equals(getCurrentPlayer(), "X")) ? "O" : "X");

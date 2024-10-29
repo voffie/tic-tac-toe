@@ -59,8 +59,6 @@ public final class ComputerClient {
 
     public void sendMove() {
         if (out != null && state != GAME_OVER || state != GAME_OVER_DRAW) {
-            System.out.println(state);
-            System.out.println(state == GAME_OVER || state == GAME_OVER_DRAW);
             int[] cpuPos = getCpuToken();
             out.println(cpuPos[0] + "," + cpuPos[1]);
             board[cpuPos[0]][cpuPos[1]] = token;
@@ -78,7 +76,6 @@ public final class ComputerClient {
         }
 
         if (state == GAME_OVER || state == GAME_OVER_DRAW) {
-            System.out.println("This runs!");
             return;
         }
 

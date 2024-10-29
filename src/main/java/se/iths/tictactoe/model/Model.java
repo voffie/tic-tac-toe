@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import se.iths.tictactoe.network.GameClient;
 import se.iths.tictactoe.network.State;
+import java.util.Objects;
 
 import static se.iths.tictactoe.network.State.*;
 import static se.iths.tictactoe.network.Utils.deserializeMessage;

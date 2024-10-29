@@ -62,8 +62,6 @@ public class Controller {
         return model;
     }
 
-
-
     private void handleClick(MouseEvent mouseEvent) {
         Label cell = (Label) mouseEvent.getSource();
         int[] position = (int[]) cell.getUserData();
