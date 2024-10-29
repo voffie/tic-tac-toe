@@ -5,7 +5,7 @@ import java.util.Objects;
 import static se.iths.tictactoe.network.State.*;
 
 public class GameState {
-    private final String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
+    private String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
     private String currentPlayer = "X";
     private int p1Points = 0;
     private int p2Points = 0;
@@ -54,12 +54,12 @@ public class GameState {
 
     public void checkGameStatus() {
         if (isWinner()) {
+            state = GAME_OVER;
             if (Objects.equals(getCurrentPlayer(), "X")) {
                 incrementP1Points();
             } else {
                 incrementP2Points();
             }
-            state = GAME_OVER;
         } else if (isFull()) {
             state = GAME_OVER_DRAW;
         } else {
@@ -83,7 +83,6 @@ public class GameState {
             if (checkRow(i) || checkColumn(i)) {
                 return true;
             }
-
         }
         return checkDiagonals();
     }
@@ -99,5 +98,11 @@ public class GameState {
     private boolean checkDiagonals() {
         return (board[0][0].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][2].equals(currentPlayer)) ||
                 (board[0][2].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][0].equals(currentPlayer));
+    }
+
+    public void reset() {
+        board = new String[][]{{"", "", ""}, {"", "", ""}, {"", "", ""}};
+        state = PLAYING;
+        setCurrentPlayer((Objects.equals(getCurrentPlayer(), "X")) ? "O" : "X");
     }
 }

@@ -16,6 +16,7 @@ public class Model {
     private final GameClient client = new GameClient("localhost", 8080);
     ObservableList<String[]> board = FXCollections.observableArrayList();
     private String token;
+    private String opponentToken;
     private String currentPlayer = "X";
     private int playerScore = 0;
     private int opponentScore = 0;
@@ -33,6 +34,7 @@ public class Model {
     }
 
     public void initializeBoard() {
+        board.clear();
         for (int i = 0; i < 3; i++) {
             final String[] row = new String[3];
             board.add(row);
@@ -44,12 +46,11 @@ public class Model {
 
     public void sendMove(int row, int col) {
         client.sendMove(row, col);
-        board.get(row)[col] = token;
     }
 
     private void handleTokenMessage(String message) {
         token = message.split(":")[1];
-        String opponentToken = Objects.equals(token, "X") ? "O" : "X";
+        opponentToken = Objects.equals(token, "X") ? "O" : "X";
         Platform.runLater(() -> {
             this.playerScoreLabel.set("You (" + token + "): 0");
             this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
@@ -71,7 +72,7 @@ public class Model {
         String statusMessage;
         if (state == GAME_OVER) {
             String winner = isPlayerTurn() ? "You" : "Opponent";
-            statusMessage = winner + " won! The game is over!";
+            statusMessage = winner + " won! The game is over! Resetting after 2.5 seconds.";
 
             if (isPlayerTurn()) {
                 Platform.runLater(this::incrementPlayerScore);
@@ -80,7 +81,7 @@ public class Model {
             }
 
         } else if (state == GAME_OVER_DRAW) {
-            statusMessage = "Draw! The game is over!";
+            statusMessage = "Draw! The game is over! Resetting after 2.5 seconds";
         } else {
             statusMessage = isPlayerTurn() ? "Your turn" : "Opponent's turn";
         }
@@ -88,7 +89,25 @@ public class Model {
         Platform.runLater(() -> setStatus(statusMessage));
     }
 
+    private void handleReset(String message) {
+        currentPlayer = message.split(" ")[1];
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        initializeBoard();
+        String statusMessage = isPlayerTurn() ? "Your turn" : "Opponent's turn";
+        state = PLAYING;
+        Platform.runLater(() -> setStatus(statusMessage));
+    }
+
     public void receiveMessage(String message) {
+        if (message.contains("Reset")) {
+            handleReset(message);
+            return;
+        }
+
         if (Objects.equals(message, "Invalid move")) {
             return;
         }
@@ -162,6 +181,6 @@ public class Model {
 
     public void incrementOpponentScore() {
         opponentScore++;
-        this.opponentScoreLabel.set("Opponent (O): " + opponentScore);
+        this.opponentScoreLabel.set("Opponent (" + opponentToken + "): " + opponentScore);
     }
 }

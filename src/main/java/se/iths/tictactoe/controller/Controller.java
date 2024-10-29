@@ -25,6 +25,9 @@ public class Controller {
     public void initialize() {
         initializeBoard();
         model.getBoard().addListener((ListChangeListener<String[]>) _ -> {
+            if (model.getBoard().size() < 3) {
+                return;
+            }
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 3; col++) {
                     String[] currentRow = model.getBoard().get(row);

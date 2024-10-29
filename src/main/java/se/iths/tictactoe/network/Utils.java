@@ -2,7 +2,7 @@ package se.iths.tictactoe.network;
 
 public class Utils {
 
-    private Utils() {};
+    private Utils() {}
 
     public static String[][] deserializeMessage(String message) {
         String[][] newBoard = new String[3][3];

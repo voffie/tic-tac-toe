@@ -38,11 +38,10 @@ public class GameServer {
         }
     }
 
-    private static void broadcastGameState() {
+    private static void broadcastMessage(String message) {
         synchronized (clients) {
-            String state = serializeGameState();
             for (ClientHandler client : clients) {
-                client.sendMessage(state);
+                client.sendMessage(message);
             }
         }
     }
@@ -97,7 +96,12 @@ public class GameServer {
 
                     if (gameState.isCellFree(row, col)) {
                         gameState.updateBoard(row, col);
-                        broadcastGameState();
+                        broadcastMessage(serializeGameState());
+
+                        if (gameState.getState() == GAME_OVER || gameState.getState() == GAME_OVER_DRAW) {
+                            gameState.reset();
+                            broadcastMessage("Reset " + gameState.getCurrentPlayer());
+                        }
                     } else {
                         sendMessage("Invalid move");
                     }
