@@ -9,8 +9,7 @@ import se.iths.tictactoe.network.GameClient;
 import se.iths.tictactoe.network.State;
 
 import static se.iths.tictactoe.network.State.*;
-
-import java.util.Objects;
+import static se.iths.tictactoe.network.Utils.deserializeMessage;
 
 public class Model {
     private final GameClient client = new GameClient("localhost", 8080);
@@ -94,20 +93,6 @@ public class Model {
         }
 
         Platform.runLater(() -> setStatus(statusMessage));
-    }
-
-    private String[][] deserializeMessage(String message) {
-        String[][] newBoard = new String[3][3];
-        String[] cells = message.split(",");
-
-        int index = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                newBoard[i][j] = cells[index].equals("-") ? "" : cells[index];
-                index++;
-            }
-        }
-        return newBoard;
     }
 
     public ObservableList<String[]> getBoard() {

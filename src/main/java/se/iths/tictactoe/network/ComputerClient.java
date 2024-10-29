@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import static se.iths.tictactoe.network.State.*;
+import static se.iths.tictactoe.network.Utils.deserializeMessage;
 
 public final class ComputerClient {
     private final String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
@@ -96,19 +97,5 @@ public final class ComputerClient {
             return;
 
         sendMove();
-    }
-
-    private String[][] deserializeMessage(String message) {
-        String[][] newBoard = new String[3][3];
-        String[] cells = message.split(",");
-
-        int index = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                newBoard[i][j] = cells[index].equals("-") ? "" : cells[index];
-                index++;
-            }
-        }
-        return newBoard;
     }
 }
