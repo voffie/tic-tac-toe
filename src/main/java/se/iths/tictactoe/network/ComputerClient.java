@@ -61,38 +61,28 @@ public final class ComputerClient {
         if (out != null && state != GAME_OVER || state != GAME_OVER_DRAW) {
             int[] cpuPos = getCpuToken();
             out.println(cpuPos[0] + "," + cpuPos[1]);
-            board[cpuPos[0]][cpuPos[1]] = token;
         }
     }
 
     private void handleMessage(String message) {
-        if (Objects.equals(message, "Invalid move")) {
-            return;
-        }
-
         if (message.contains("Token:")) {
             token = message.split(":")[1];
-            return;
-        }
+        } else {
+            String[] boardStateSplit = message.split(",CurrentPlayer:");
+            String[] playerStateSplit = boardStateSplit[1].split(",State:");
+            state = State.valueOf(playerStateSplit[1]);
 
-        if (state == GAME_OVER || state == GAME_OVER_DRAW) {
-            return;
-        }
-
-        String[] boardStateSplit = message.split(",CurrentPlayer:");
-        String[] playerStateSplit = boardStateSplit[1].split(",State:");
-        state = State.valueOf(playerStateSplit[1]);
-
-        String[][] deserializedMessage = deserializeMessage(boardStateSplit[0]);
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                board[row][col] = deserializedMessage[row][col].equals("-") ? "" : deserializedMessage[row][col];
+            String[][] deserializedMessage = deserializeMessage(boardStateSplit[0]);
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    board[row][col] = deserializedMessage[row][col].equals("-") ? "" : deserializedMessage[row][col];
+                }
             }
+
+            if (!Objects.equals(token, playerStateSplit[0]))
+                return;
+
+            sendMove();
         }
-
-        if (!Objects.equals(token, playerStateSplit[0]))
-            return;
-
-        sendMove();
     }
 }

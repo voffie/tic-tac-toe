@@ -6,32 +6,39 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static se.iths.tictactoe.network.State.*;
 
 public class GameServer {
-    private static final int PORT = 8080;
+    private static int PORT = 8080;
     private static final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
-    private static final GameState gameState = new GameState();
-    private static int players = 0;
+    private static GameState gameState;
     private static final String[] tokens = {"X", "O"};
+
+    public GameServer(int port) {
+        PORT = port;
+    }
+
+    public int getPort() {
+        return PORT;
+    }
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Game server started on port: " + PORT);
+            PORT = serverSocket.getLocalPort();
+            gameState = new GameState();
+            clients.clear();
 
             while (true) {
+                int players = clients.size();
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
-                System.out.println("With token: " + tokens[players]);
-                ClientHandler clientHandler = new ClientHandler(clientSocket, tokens[players]);
+                System.out.println("Client #" + players + " connected: " + clientSocket.getInetAddress());
+                System.out.println("With token: " + tokens[players % tokens.length]);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, tokens[players % tokens.length]);
                 clients.add(clientHandler);
                 Thread.ofVirtual().start(clientHandler);
-                players++;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,21 +97,13 @@ public class GameServer {
 
                     String currentPlayer = gameState.getCurrentPlayer();
                     State state = gameState.getState();
+
                     if (!Objects.equals(currentPlayer, token) || state == GAME_OVER || state == GAME_OVER_DRAW) {
                         return;
                     }
 
-                    if (gameState.isCellFree(row, col)) {
-                        gameState.updateBoard(row, col);
-                        broadcastMessage(serializeGameState());
-
-                        if (gameState.getState() == GAME_OVER || gameState.getState() == GAME_OVER_DRAW) {
-                            gameState.reset();
-                            broadcastMessage("Reset " + gameState.getCurrentPlayer());
-                        }
-                    } else {
-                        sendMessage("Invalid move");
-                    }
+                    gameState.updateBoard(row, col);
+                    broadcastMessage(serializeGameState());
                 }
                 clients.remove(this);
             } catch (IOException e) {

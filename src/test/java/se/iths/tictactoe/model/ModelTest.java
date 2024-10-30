@@ -1,195 +1,295 @@
 package se.iths.tictactoe.model;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import se.iths.tictactoe.network.GameServer;
+import se.iths.tictactoe.network.State;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
+import static se.iths.tictactoe.network.State.*;
 
 class ModelTest {
-    Model model = new Model();
+    Model modelX;
+    Model modelO;
+
+    @BeforeEach
+    public void init() {
+        GameServer server = new GameServer(0);
+        Thread.ofVirtual().start(() -> GameServer.main(null));
+        await().until(() -> server.getPort() != 0);
+
+        modelX = new Model(server.getPort());
+        modelO = new Model(server.getPort());
+        modelX.connect();
+        modelO.connect();
+    }
 
     @Test
     void boardShouldBeEmptyOnStart() {
-        String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
-        assertArrayEquals(board, model.getBoard());
+        List<String[]> testBoard = new ArrayList<>();
+        String[] row1 = new String[]{"", "", ""};
+        String[] row2 = new String[]{"", "", ""};
+        String[] row3 = new String[]{"", "", ""};
+        testBoard.add(row1);
+        testBoard.add(row2);
+        testBoard.add(row3);
+
+        var modelXBoard = modelX.getBoard();
+
+        assertAll(() -> assertArrayEquals(testBoard.getFirst(), modelXBoard.getFirst()),
+                () -> assertArrayEquals(testBoard.get(1), modelXBoard.get(1)),
+                () -> assertArrayEquals(testBoard.getLast(), modelXBoard.getLast()));
     }
 
     @Test
     void currentPlayerShouldBeXOnStart() {
-        assertEquals("X", model.getCurrentPlayer());
+        assertEquals("X", modelO.getCurrentPlayer());
     }
 
     @Test
     void stateShouldBePlayingOnStart() {
-        assertEquals(State.PLAYING, model.getState());
+        assertEquals(State.PLAYING, modelX.getState());
     }
 
     @Test
-    void shouldBeAbleToChangeState() {
-        model.setState(State.GAME_OVER);
-        assertEquals(State.GAME_OVER, model.getState());
+    void canPlaceTokenOnBoard() {
+        List<String[]> testBoard = new ArrayList<>();
+        String[] row1 = new String[]{"X", "", ""};
+        String[] row2 = new String[]{"", "", ""};
+        String[] row3 = new String[]{"", "", ""};
+        testBoard.add(row1);
+        testBoard.add(row2);
+        testBoard.add(row3);
+
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+
+        var modelXBoard = modelX.getBoard();
+        var modelOBoard = modelO.getBoard();
+
+        assertAll(
+                () -> assertArrayEquals(testBoard.getFirst(), modelXBoard.getFirst()),
+                () -> assertArrayEquals(testBoard.get(1), modelXBoard.get(1)),
+                () -> assertArrayEquals(testBoard.getLast(), modelXBoard.getLast()),
+                () -> assertArrayEquals(testBoard.getFirst(), modelOBoard.getFirst()),
+                () -> assertArrayEquals(testBoard.get(1), modelOBoard.get(1)),
+                () -> assertArrayEquals(testBoard.getLast(), modelOBoard.getLast()));
     }
 
     @Test
-    void canUpdateBoard() {
-        String[][] board = {{"X", "", ""}, {"", "", ""}, {"", "", ""}};
-        model.setToken(0, 0); // X
-        assertArrayEquals(board, model.getBoard());
+    void canNotPlaceTokenOnTakenCell() {
+        List<String[]> testBoard = new ArrayList<>();
+        String[] row1 = new String[]{"X", "", ""};
+        String[] row2 = new String[]{"", "", ""};
+        String[] row3 = new String[]{"", "", ""};
+        testBoard.add(row1);
+        testBoard.add(row2);
+        testBoard.add(row3);
+
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+
+        assertAll(
+                () -> assertArrayEquals(testBoard.getFirst(), modelX.getBoard().getFirst()),
+                () -> assertArrayEquals(testBoard.get(1), modelX.getBoard().get(1)),
+                () -> assertArrayEquals(testBoard.getLast(), modelX.getBoard().getLast()),
+                () -> assertArrayEquals(testBoard.getFirst(), modelO.getBoard().getFirst()),
+                () -> assertArrayEquals(testBoard.get(1), modelO.getBoard().get(1)),
+                () -> assertArrayEquals(testBoard.getLast(), modelO.getBoard().getLast()));
     }
 
     @Test
-    void canNotAddTokenOnOccupiedCell() {
-        String[][] board = {{"X", "", ""}, {"", "", ""}, {"", "", ""}};
-        model.setToken(0, 0); // X
-        model.setToken(0, 0); // O
+    void canWinHorizontallyOnFirstRow() {
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertArrayEquals(board, model.getBoard());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldBeWonVertically() {
-        model.setToken(0, 0); // X
-        model.setToken(0, 1); // O
-        model.setToken(1, 0); // X
-        model.setToken(1, 1); // O
-        model.setToken(2, 2); // X
-        model.setToken(2, 1); // O
+    void canWinHorizontallyOnSecondRow() {
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 2);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertTrue(model.isWinner());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldBeWonHorizontally() {
-        model.setToken(1, 0); // X
-        model.setToken(0, 0); // O
-        model.setToken(1, 1); // X
-        model.setToken(0, 1); // O
-        model.setToken(2, 0); // X
-        model.setToken(0, 2); // O
+    void canWinHorizontallyOnThirdRow() {
+        modelX.sendMove(2, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(2, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(2, 2);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertTrue(model.isWinner());
+
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldBeWonDiagonally() {
-        model.setToken(0, 0); // X
-        model.setToken(0, 1); // O
-        model.setToken(1, 1); // X
-        model.setToken(0, 2); // O
-        model.setToken(2, 2); // X
+    void canWinVerticallyOnFirstColumn() {
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(2, 0);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertTrue(model.isWinner());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldBeWonDiagonally2() {
-        model.setToken(0, 2); // X
-        model.setToken(0, 1); // O
-        model.setToken(1, 1); // X
-        model.setToken(0, 0); // O
-        model.setToken(2, 0); // X
+    void canWinVerticallyOnSecondColumn() {
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(2, 1);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertTrue(model.isWinner());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldBeFull() {
-        model.setToken(0, 0); // X
-        model.setToken(0, 1); // O
-        model.setToken(0, 2); // X
-        model.setToken(1, 1); // O
-        model.setToken(1, 0); // X
-        model.setToken(2, 0); // O
-        model.setToken(1, 2); // X
-        model.setToken(2, 2); // O
-        model.setToken(2, 1); // X
+    void canWinVerticallyOnThirdColumn() {
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(2, 2);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertTrue(model.isFull());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldNotBeFull() {
-        model.setToken(0, 0); // X
-        model.setToken(0, 1); // O
+    void canWinDiagonallyLeftToRight() {
+        modelX.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(2, 2);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        assertFalse(model.isFull());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void boardShouldResetAfterAWin() {
-        String[][] board = {{"", "", ""}, {"", "", ""}, {"", "", ""}};
+    void canWinDiagonallyRightToLeft() {
+        modelX.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(2, 0);
+        await().until(() -> modelX.handled && modelO.handled);
 
-        model.setToken(0, 2); // X
-        model.setToken(0, 1); // O
-        model.setToken(1, 1); // X
-        model.setToken(0, 0); // O
-        model.setToken(2, 0); // X
-
-        model.setState(State.PLAYING);
-        assertArrayEquals(board, model.getBoard());
+        assertAll(
+                () -> assertEquals(GAME_OVER, modelX.getState()),
+                () -> assertEquals(GAME_OVER, modelO.getState())
+        );
     }
 
     @Test
-    void statusShouldBeUpdated() {
-        model.setStatus("X's turn");
+    void gameIsDrawnOnFullBoard() {
+        modelX.sendMove(0, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(0, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(1, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(1, 2);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(2, 1);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelO.sendMove(2, 0);
+        await().until(() -> modelX.handled && modelO.handled);
+        modelX.sendMove(2, 2);
+        await().until(() -> modelO.handled && modelX.handled);
 
-        assertEquals("X's turn", model.getStatus());
-    }
-
-    @Test
-    void p1PointsShouldBeUpdated() {
-        model.incrementP1Points();
-
-        assertEquals("Player 1 (X): 1", model.getP1Points());
-    }
-
-    @Test
-    void p2PointsShouldBeUpdated() {
-        model.incrementP2Points();
-
-        assertEquals("Player 2 (O): 1", model.getP2Points());
-    }
-
-    @Test
-    void statusPropertyShouldReturn() {
-        assertEquals("X's turn", model.statusProperty().getValue());
-    }
-
-    @Test
-    void p1PointsPropertyShouldReturn() {
-        assertEquals("Player 1 (X): 0", model.p1PointsProperty().getValue());
-    }
-
-    @Test
-    void p2PointsPropertyShouldReturnCorrectValueIfIsLocal() {
-        model.setIsLocal(true);
-
-        assertEquals("CPU (O): 0", model.p2PointsProperty().getValue());
-    }
-
-    @Test
-    void p2PointsPropertyShouldReturnCorrectValueIfIsOnline() {
-        model.setIsLocal(false);
-
-        assertEquals("Player 2 (O): 0", model.p2PointsProperty().getValue());
-    }
-
-    @Test
-    void getIsLocalShouldReturnUpdatedState() {
-        model.setIsLocal(false);
-
-        assertFalse(model.getIsLocal());
-    }
-
-    @Test
-    void cpuShouldMakePossibleMove() {
-        String[][] board = {{"X", "", ""}, {"", "O", ""}, {"", "", ""}};
-        MockRandom random = new MockRandom();
-        Model model = new Model(random);
-
-        model.setToken(0, 0); // X
-        int[] cpuPos = model.getCpuToken();
-        model.setToken(cpuPos[0], cpuPos[1]);
-
-        assertArrayEquals(board, model.getBoard());
+        assertAll(
+                () -> assertEquals(GAME_OVER_DRAW, modelX.getState()),
+                () -> assertEquals(GAME_OVER_DRAW, modelO.getState())
+        );
     }
 
 }

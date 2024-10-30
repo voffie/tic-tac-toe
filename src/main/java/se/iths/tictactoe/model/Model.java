@@ -7,14 +7,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import se.iths.tictactoe.network.GameClient;
 import se.iths.tictactoe.network.State;
+
 import java.util.Objects;
 
 import static se.iths.tictactoe.network.State.*;
 import static se.iths.tictactoe.network.Utils.deserializeMessage;
 
 public class Model {
-    private final GameClient client = new GameClient("localhost", 8080);
-    ObservableList<String[]> board = FXCollections.observableArrayList();
+    private final GameClient client;
+    ObservableList<String[]> board = FXCollections.observableArrayList(new String[]{"", "", ""}, new String[]{"", "", ""}, new String[]{"", "", ""});
     private String token;
     private String opponentToken;
     private String currentPlayer = "X";
@@ -24,37 +25,41 @@ public class Model {
     private final StringProperty playerScoreLabel = new SimpleStringProperty("You (X): 0");
     private final StringProperty opponentScoreLabel = new SimpleStringProperty("Opponent (O): 0");
     private State state = PLAYING;
+    public boolean handled = false;
 
     public Model() {
-        initializeBoard();
+        client = new GameClient("localhost", 8080);
+    }
+
+    public Model(int port) {
+        client = new GameClient("localhost", port);
     }
 
     public void connect() {
         client.connect(this::receiveMessage);
     }
 
-    public void initializeBoard() {
-        board.clear();
-        for (int i = 0; i < 3; i++) {
-            final String[] row = new String[3];
-            board.add(row);
-            for (int j = 0; j < 3; j++) {
-                row[j] = "";
-            }
-        }
+    private boolean isCellFree(int row, int col) {
+        return board.get(row)[col].isEmpty();
     }
 
     public void sendMove(int row, int col) {
-        client.sendMove(row, col);
+        if (isCellFree(row, col)) {
+            client.sendMove(row, col);
+        }
     }
 
     private void handleTokenMessage(String message) {
         token = message.split(":")[1];
         opponentToken = Objects.equals(token, "X") ? "O" : "X";
-        Platform.runLater(() -> {
-            this.playerScoreLabel.set("You (" + token + "): 0");
-            this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
-        });
+        try {
+            Platform.runLater(() -> {
+                this.playerScoreLabel.set("You (" + token + "): 0");
+                this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
+            });
+        } catch (Exception e) {
+            System.out.println("Error in Platform.runLater " + e.getMessage());
+        }
     }
 
     private void updateBoard(String serializedBoard) {
@@ -68,62 +73,53 @@ public class Model {
         }
     }
 
-    private void handleScore() {
+    private void handleState() {
         String statusMessage;
         if (state == GAME_OVER) {
             String winner = isPlayerTurn() ? "You" : "Opponent";
-            statusMessage = winner + " won! The game is over! Resetting after 2.5 seconds.";
+            statusMessage = winner + " won! The game is over!";
 
             if (isPlayerTurn()) {
-                Platform.runLater(this::incrementPlayerScore);
+                try {
+                    Platform.runLater(this::incrementPlayerScore);
+                } catch (Exception e) {
+                    System.out.println("Error in Platform.runLater " + e.getMessage());
+                }
             } else {
-                Platform.runLater(this::incrementOpponentScore);
+                try {
+                    Platform.runLater(this::incrementOpponentScore);
+                } catch (Exception e) {
+                    System.out.println("Error in Platform.runLater " + e.getMessage());
+                }
             }
 
         } else if (state == GAME_OVER_DRAW) {
-            statusMessage = "Draw! The game is over! Resetting after 2.5 seconds";
+            statusMessage = "Draw! The game is over!";
         } else {
             statusMessage = isPlayerTurn() ? "Your turn" : "Opponent's turn";
         }
 
-        Platform.runLater(() -> setStatus(statusMessage));
-    }
-
-    private void handleReset(String message) {
-        currentPlayer = message.split(" ")[1];
         try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Platform.runLater(() -> setStatus(statusMessage));
+        } catch (Exception e) {
+            System.out.println("Error in Platform.runLater " + e.getMessage());
         }
-        initializeBoard();
-        String statusMessage = isPlayerTurn() ? "Your turn" : "Opponent's turn";
-        state = PLAYING;
-        Platform.runLater(() -> setStatus(statusMessage));
     }
 
     public void receiveMessage(String message) {
-        if (message.contains("Reset")) {
-            handleReset(message);
-            return;
-        }
-
-        if (Objects.equals(message, "Invalid move")) {
-            return;
-        }
-
+        handled = false;
         if (message.contains("Token:")) {
             handleTokenMessage(message);
-            return;
+        } else {
+            String[] boardStateSplit = message.split(",CurrentPlayer:");
+            String[] playerStateSplit = boardStateSplit[1].split(",State:");
+            currentPlayer = playerStateSplit[0];
+            state = State.valueOf(playerStateSplit[1]);
+
+            updateBoard(boardStateSplit[0]);
+            handleState();
         }
-
-        String[] boardStateSplit = message.split(",CurrentPlayer:");
-        String[] playerStateSplit = boardStateSplit[1].split(",State:");
-        currentPlayer = playerStateSplit[0];
-        state = State.valueOf(playerStateSplit[1]);
-
-        updateBoard(boardStateSplit[0]);
-        handleScore();
+        handled = true;
     }
 
     public ObservableList<String[]> getBoard() {
