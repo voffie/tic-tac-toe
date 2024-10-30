@@ -1,5 +1,7 @@
 package se.iths.tictactoe.model;
 
+import javafx.application.Platform;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import se.iths.tictactoe.network.GameServer;
@@ -16,8 +18,13 @@ class ModelTest {
     Model modelX;
     Model modelO;
 
+    @BeforeAll
+    static void setup() {
+        Platform.startup(() -> {});
+    }
+
     @BeforeEach
-    public void init() {
+    void init() {
         GameServer server = new GameServer(0);
         Thread.ofVirtual().start(() -> GameServer.main(null));
         await().until(() -> server.getPort() != 0);
@@ -47,6 +54,7 @@ class ModelTest {
 
     @Test
     void currentPlayerShouldBeXOnStart() {
+        await().until(() -> modelX.handled && modelO.handled);
         assertEquals("X", modelO.getCurrentPlayer());
     }
 

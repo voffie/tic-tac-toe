@@ -18,10 +18,10 @@ public class Model {
     ObservableList<String[]> board = FXCollections.observableArrayList(new String[]{"", "", ""}, new String[]{"", "", ""}, new String[]{"", "", ""});
     private String token;
     private String opponentToken;
-    private String currentPlayer = "X";
+    private String currentPlayer;
     private int playerScore = 0;
     private int opponentScore = 0;
-    private final StringProperty status = new SimpleStringProperty(currentPlayer + "'s turn");
+    private final StringProperty status = new SimpleStringProperty("Your turn");
     private final StringProperty playerScoreLabel = new SimpleStringProperty("You (X): 0");
     private final StringProperty opponentScoreLabel = new SimpleStringProperty("Opponent (O): 0");
     private State state = PLAYING;
@@ -44,7 +44,9 @@ public class Model {
     }
 
     public void sendMove(int row, int col) {
-        if (isCellFree(row, col)) {
+        if (state == GAME_OVER || state == GAME_OVER_DRAW) {
+            client.sendMove(row, col);
+        } else if (isCellFree(row, col)) {
             client.sendMove(row, col);
         }
     }
@@ -52,14 +54,11 @@ public class Model {
     private void handleTokenMessage(String message) {
         token = message.split(":")[1];
         opponentToken = Objects.equals(token, "X") ? "O" : "X";
-        try {
-            Platform.runLater(() -> {
-                this.playerScoreLabel.set("You (" + token + "): 0");
-                this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
-            });
-        } catch (Exception e) {
-            System.out.println("Error in Platform.runLater " + e.getMessage());
-        }
+
+        Platform.runLater(() -> {
+            this.playerScoreLabel.set("You (" + token + "): 0");
+            this.opponentScoreLabel.set("Opponent (" + opponentToken + "): 0");
+        });
     }
 
     private void updateBoard(String serializedBoard) {
@@ -80,17 +79,9 @@ public class Model {
             statusMessage = winner + " won! The game is over!";
 
             if (isPlayerTurn()) {
-                try {
-                    Platform.runLater(this::incrementPlayerScore);
-                } catch (Exception e) {
-                    System.out.println("Error in Platform.runLater " + e.getMessage());
-                }
+                Platform.runLater(this::incrementPlayerScore);
             } else {
-                try {
-                    Platform.runLater(this::incrementOpponentScore);
-                } catch (Exception e) {
-                    System.out.println("Error in Platform.runLater " + e.getMessage());
-                }
+                Platform.runLater(this::incrementOpponentScore);
             }
 
         } else if (state == GAME_OVER_DRAW) {
@@ -99,11 +90,7 @@ public class Model {
             statusMessage = isPlayerTurn() ? "Your turn" : "Opponent's turn";
         }
 
-        try {
-            Platform.runLater(() -> setStatus(statusMessage));
-        } catch (Exception e) {
-            System.out.println("Error in Platform.runLater " + e.getMessage());
-        }
+        Platform.runLater(() -> setStatus(statusMessage));
     }
 
     public void receiveMessage(String message) {

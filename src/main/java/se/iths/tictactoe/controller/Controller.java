@@ -10,7 +10,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import se.iths.tictactoe.model.Model;
 import se.iths.tictactoe.network.ComputerClient;
-import se.iths.tictactoe.network.State;
 import java.util.Objects;
 
 public class Controller {
@@ -67,11 +66,7 @@ public class Controller {
         int[] position = (int[]) cell.getUserData();
         int row = position[0];
         int col = position[1];
-        String currentPlayer = model.getCurrentPlayer();
-        String playerToken = model.getToken();
-        if (model.getState() == State.PLAYING && Objects.equals(playerToken, currentPlayer)) {
-            model.sendMove(row, col);
-        }
+        model.sendMove(row, col);
     }
 
     private Label getLabel(int row, int col) {

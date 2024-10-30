@@ -79,10 +79,8 @@ public final class ComputerClient {
                 }
             }
 
-            if (!Objects.equals(token, playerStateSplit[0]))
-                return;
-
-            sendMove();
+            if (Objects.equals(token, playerStateSplit[0]))
+                sendMove();
         }
     }
 }

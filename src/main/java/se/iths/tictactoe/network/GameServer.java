@@ -95,14 +95,14 @@ public class GameServer {
                     int row = Integer.parseInt(positions[0]);
                     int col = Integer.parseInt(positions[1]);
 
-                    String currentPlayer = gameState.getCurrentPlayer();
                     State state = gameState.getState();
 
-                    if (!Objects.equals(currentPlayer, token) || state == GAME_OVER || state == GAME_OVER_DRAW) {
-                        return;
+                    if (state == GAME_OVER || state == GAME_OVER_DRAW) {
+                        gameState.reset();
+                    } else {
+                        gameState.updateBoard(row, col);
                     }
 
-                    gameState.updateBoard(row, col);
                     broadcastMessage(serializeGameState());
                 }
                 clients.remove(this);
