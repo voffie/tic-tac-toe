@@ -27,10 +27,12 @@ public class Model {
     private State state = PLAYING;
     public boolean handled = false;
 
+    // Change host & port here for online play
     public Model() {
         client = new GameClient("localhost", 8080);
     }
 
+    // Constructor for tests
     public Model(int port) {
         client = new GameClient("localhost", port);
     }
