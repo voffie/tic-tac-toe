@@ -65,8 +65,7 @@ class ModelTest {
         testBoard.add(row2);
         testBoard.add(row3);
 
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
 
         var modelXBoard = modelX.getBoard();
         var modelOBoard = modelO.getBoard();
@@ -90,10 +89,8 @@ class ModelTest {
         testBoard.add(row2);
         testBoard.add(row3);
 
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(0, 0);
 
         assertAll(
                 () -> assertArrayEquals(testBoard.getFirst(), modelX.getBoard().getFirst()),
@@ -106,16 +103,11 @@ class ModelTest {
 
     @Test
     void canWinHorizontallyOnFirstRow() {
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(1, 0);
+        sendAndAwaitMoveX(0, 1);
+        sendAndAwaitMoveO(1, 1);
+        sendAndAwaitMoveX(0, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -125,16 +117,11 @@ class ModelTest {
 
     @Test
     void canWinHorizontallyOnSecondRow() {
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 2);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(0, 0);
+        sendAndAwaitMoveX(1, 1);
+        sendAndAwaitMoveO(0, 1);
+        sendAndAwaitMoveX(1, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -144,17 +131,11 @@ class ModelTest {
 
     @Test
     void canWinHorizontallyOnThirdRow() {
-        modelX.sendMove(2, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(2, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(2, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-
+        sendAndAwaitMoveX(2, 0);
+        sendAndAwaitMoveO(0, 0);
+        sendAndAwaitMoveX(2, 1);
+        sendAndAwaitMoveO(0, 1);
+        sendAndAwaitMoveX(2, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -164,16 +145,11 @@ class ModelTest {
 
     @Test
     void canWinVerticallyOnFirstColumn() {
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(2, 0);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(0, 1);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(1, 1);
+        sendAndAwaitMoveX(2, 0);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -183,18 +159,12 @@ class ModelTest {
 
     @Test
     void canWinVerticallyOnSecondColumn() {
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(2, 1);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(0, 1);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(1, 1);
+        sendAndAwaitMoveX(0, 2);
+        sendAndAwaitMoveO(2, 1);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -204,18 +174,12 @@ class ModelTest {
 
     @Test
     void canWinVerticallyOnThirdColumn() {
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(2, 2);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(0, 2);
+        sendAndAwaitMoveX(0, 1);
+        sendAndAwaitMoveO(1, 2);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(2, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -225,18 +189,12 @@ class ModelTest {
 
     @Test
     void canWinDiagonallyLeftToRight() {
-        modelX.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(2, 2);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 1);
+        sendAndAwaitMoveO(0, 0);
+        sendAndAwaitMoveX(0, 2);
+        sendAndAwaitMoveO(1, 1);
+        sendAndAwaitMoveX(1, 2);
+        sendAndAwaitMoveO(2, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -246,18 +204,12 @@ class ModelTest {
 
     @Test
     void canWinDiagonallyRightToLeft() {
-        modelX.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(2, 0);
-        await().until(() -> modelX.handled && modelO.handled);
+        sendAndAwaitMoveX(0, 0);
+        sendAndAwaitMoveO(0, 2);
+        sendAndAwaitMoveX(0, 1);
+        sendAndAwaitMoveO(1, 1);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(2, 0);
 
         assertAll(
                 () -> assertEquals(GAME_OVER, modelX.getState()),
@@ -267,29 +219,30 @@ class ModelTest {
 
     @Test
     void gameIsDrawnOnFullBoard() {
-        modelX.sendMove(0, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(0, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(1, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(1, 2);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(2, 1);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelO.sendMove(2, 0);
-        await().until(() -> modelX.handled && modelO.handled);
-        modelX.sendMove(2, 2);
-        await().until(() -> modelO.handled && modelX.handled);
+        sendAndAwaitMoveX(0, 2);
+        sendAndAwaitMoveO(0, 0);
+        sendAndAwaitMoveX(1, 0);
+        sendAndAwaitMoveO(0, 1);
+        sendAndAwaitMoveX(1, 1);
+        sendAndAwaitMoveO(1, 2);
+        sendAndAwaitMoveX(2, 1);
+        sendAndAwaitMoveO(2, 0);
+        sendAndAwaitMoveX(2, 2);
 
         assertAll(
                 () -> assertEquals(GAME_OVER_DRAW, modelX.getState()),
                 () -> assertEquals(GAME_OVER_DRAW, modelO.getState())
         );
+    }
+
+    private void sendAndAwaitMoveX(int row, int col) {
+        modelX.sendMove(row, col);
+        await().until(() -> modelX.handled && modelO.handled);
+    }
+
+    private void sendAndAwaitMoveO(int row, int col) {
+        modelO.sendMove(row, col);
+        await().until(() -> modelX.handled && modelO.handled);
     }
 
 }
