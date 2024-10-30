@@ -3,7 +3,6 @@ package se.iths.tictactoe.controller;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -16,8 +15,6 @@ public class Controller {
     private final Model model = new Model();
     public GridPane pane;
     public HBox container;
-    public Button onlineBtn;
-    public Button localBtn;
     public HBox top;
     public Label bottom;
 

@@ -24,10 +24,10 @@
     <center>
         <StackPane>
             <HBox fx:id="container" alignment="CENTER" spacing="20">
-                <Button fx:id="onlineBtn" onMouseClicked="#onlineClicked">
+                <Button onMouseClicked="#onlineClicked">
                     Play online
                 </Button>
-                <Button fx:id="localBtn" onMouseClicked="#localClicked">
+                <Button onMouseClicked="#localClicked">
                     Play local
                 </Button>
             </HBox>
